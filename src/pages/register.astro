@@ -1,0 +1,182 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getUserFromRequest } from '../lib/auth';
+
+const user = await getUserFromRequest(Astro.request);
+if (user) {
+  return Astro.redirect('/dashboard');
+}
+---
+
+<Layout title="Sign Up — TypeMaster" description="Create a TypeMaster account to save stats, streaks, and view heatmaps.">
+  <div class="max-w-md mx-auto my-12 p-8 border border-hairline bg-canvas-soft rounded-lg shadow-level-3">
+    <div class="text-center mb-8">
+      <h1 class="text-2xl font-bold tracking-tight text-ink">Create an account</h1>
+      <p class="text-xs text-body mt-2">Start tracking your typing speed and stats today.</p>
+    </div>
+
+    <!-- Error container -->
+    <div id="error-alert" class="hidden mb-4 p-3 border border-error-deep/20 bg-error-soft text-error text-xs rounded"></div>
+
+    <form id="register-form" class="space-y-4">
+      <div>
+        <label for="username" class="block text-xs font-mono text-mute uppercase tracking-wider mb-2">Username</label>
+        <input 
+          type="text" 
+          id="username" 
+          name="username" 
+          required 
+          pattern="^[a-zA-Z0-9_]{3,15}$"
+          title="Username must be 3-15 alphanumeric characters or underscores"
+          placeholder="typer123" 
+          class="w-full px-3 py-2 border border-hairline bg-canvas-soft-2 focus:border-hairline-strong rounded outline-none text-sm text-ink transition-colors"
+        />
+      </div>
+
+      <div>
+        <label for="email" class="block text-xs font-mono text-mute uppercase tracking-wider mb-2">Email Address</label>
+        <input 
+          type="email" 
+          id="email" 
+          name="email" 
+          required 
+          placeholder="you@example.com" 
+          class="w-full px-3 py-2 border border-hairline bg-canvas-soft-2 focus:border-hairline-strong rounded outline-none text-sm text-ink transition-colors"
+        />
+      </div>
+
+      <div>
+        <label for="password" class="block text-xs font-mono text-mute uppercase tracking-wider mb-2">Password</label>
+        <input 
+          type="password" 
+          id="password" 
+          name="password" 
+          required 
+          minlength="6"
+          placeholder="••••••••" 
+          class="w-full px-3 py-2 border border-hairline bg-canvas-soft-2 focus:border-hairline-strong rounded outline-none text-sm text-ink transition-colors"
+        />
+      </div>
+
+      <button 
+        type="submit" 
+        id="submit-btn"
+        class="w-full py-2 bg-ink text-canvas hover:opacity-90 font-semibold text-sm rounded shadow-level-2 transition-all"
+      >
+        Sign Up
+      </button>
+    </form>
+
+    <div class="relative my-6 text-center">
+      <span class="absolute inset-x-0 top-1/2 -translate-y-1/2 border-t border-hairline"></span>
+      <span class="relative bg-canvas-soft px-3 text-[10px] font-mono text-mute uppercase">Or continue with</span>
+    </div>
+
+    <!-- Mock Google Sign Up Button -->
+    <button 
+      id="google-signup-btn"
+      class="w-full py-2 border border-hairline bg-canvas hover:bg-canvas-soft-2 text-ink text-xs font-medium rounded transition-colors flex items-center justify-center space-x-2 shadow-level-1"
+    >
+      <svg class="w-4 h-4" viewBox="0 0 24 24">
+        <path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114-3.555 0-6.437-2.882-6.437-6.437s2.882-6.437 6.437-6.437c1.558 0 2.977.56 4.092 1.488l3.14-3.14C19.08 1.83 15.86 0 12.24 0 5.48 0 0 5.48 0 12.24s5.48 12.24 12.24 12.24c6.76 0 12.24-5.48 12.24-12.24 0-.825-.075-1.62-.218-2.385H12.24z"/>
+      </svg>
+      <span>Google</span>
+    </button>
+
+    <div class="mt-8 text-center text-xs text-body">
+      Already have an account? 
+      <a href="/login" class="text-link hover:underline font-semibold ml-1">Log in</a>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('register-form') as HTMLFormElement;
+    const errorAlert = document.getElementById('error-alert') as HTMLDivElement;
+    const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
+    const googleBtn = document.getElementById('google-signup-btn') as HTMLButtonElement;
+
+    // Parse referral code from URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const referralCode = urlParams.get('ref') || null;
+
+    if (form) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        errorAlert.classList.add('hidden');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Creating account...';
+
+        const username = (document.getElementById('username') as HTMLInputElement).value;
+        const email = (document.getElementById('email') as HTMLInputElement).value;
+        const password = (document.getElementById('password') as HTMLInputElement).value;
+
+        try {
+          const res = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, email, password, referralCode })
+          });
+
+          const data = await res.json();
+
+          if (res.ok) {
+            window.location.href = '/dashboard';
+          } else {
+            errorAlert.textContent = data.error || 'Registration failed. Please try again.';
+            errorAlert.classList.remove('hidden');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Sign Up';
+          }
+        } catch (err) {
+          errorAlert.textContent = 'Network error. Please try again.';
+          errorAlert.classList.remove('hidden');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Sign Up';
+        }
+      });
+    }
+
+    if (googleBtn) {
+      googleBtn.addEventListener('click', async () => {
+        errorAlert.classList.add('hidden');
+        googleBtn.disabled = true;
+        
+        try {
+          // Log into a mock Google user account
+          const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: 'guest@typemaster.dev', password: 'guestpassword123' })
+          });
+          
+          if (res.ok) {
+            window.location.href = '/dashboard';
+          } else {
+            // Register if not yet registered
+            const regRes = await fetch('/api/auth/register', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                email: 'guest@typemaster.dev', 
+                username: 'GoogleTyper', 
+                password: 'guestpassword123',
+                referralCode 
+              })
+            });
+            if (regRes.ok) {
+              window.location.href = '/dashboard';
+            } else {
+              errorAlert.textContent = 'Mock Google sign-up failed.';
+              errorAlert.classList.remove('hidden');
+              googleBtn.disabled = false;
+            }
+          }
+        } catch (e) {
+          errorAlert.textContent = 'Network error during Google sign-in.';
+          errorAlert.classList.remove('hidden');
+          googleBtn.disabled = false;
+        }
+      });
+    }
+  </script>
+</Layout>

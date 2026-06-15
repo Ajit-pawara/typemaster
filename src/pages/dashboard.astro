@@ -1,0 +1,190 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Chart from '../components/Chart';
+import Heatmap from '../components/Heatmap';
+import AdUnit from '../components/AdUnit';
+import { getUserFromRequest } from '../lib/auth';
+import { getDb } from '../lib/db';
+import { ObjectId } from 'mongodb';
+
+// Authenticate user
+const user = await getUserFromRequest(Astro.request);
+if (!user) {
+  return Astro.redirect('/login');
+}
+
+const db = await getDb();
+const userObjectId = new ObjectId(user.id);
+
+// 1. Fetch test results
+const results = await db.collection('test_results')
+  .find({ userId: userObjectId })
+  .sort({ createdAt: -1 })
+  .toArray();
+
+// Calculate stats
+const totalTests = results.length;
+const highestWpm = results.reduce((max, r) => r.wpm > max ? r.wpm : max, 0);
+const avgWpm = totalTests > 0 
+  ? Math.round(results.reduce((sum, r) => sum + r.wpm, 0) / totalTests) 
+  : 0;
+const avgAccuracy = totalTests > 0 
+  ? Math.round(results.reduce((sum, r) => sum + r.accuracy, 0) / totalTests) 
+  : 0;
+
+// Aggregate error keys for the heatmap
+const aggregatedErrorKeys: Record<string, number> = {};
+results.forEach(result => {
+  if (result.errorKeys) {
+    Object.entries(result.errorKeys).forEach(([key, count]) => {
+      aggregatedErrorKeys[key] = (aggregatedErrorKeys[key] || 0) + (count as number);
+    });
+  }
+});
+
+// Convert results to format expected by Chart component (only WPM, accuracy, date)
+const chartHistory = results.map(r => ({
+  wpm: r.wpm,
+  accuracy: r.accuracy,
+  createdAt: r.createdAt,
+  mode: r.mode
+})).reverse(); // chronological order
+
+// 2. Fetch achievements
+const achievements = await db.collection('achievements')
+  .find({ userId: userObjectId })
+  .sort({ unlockedAt: -1 })
+  .toArray();
+
+// 3. Fetch referrals list
+const referrals = await db.collection('users')
+  .find({ referredBy: user.referralCode })
+  .project({ username: 1, createdAt: 1 })
+  .toArray();
+
+// Build absolute referral URL
+const referralUrl = `${Astro.url.origin}/register?ref=${user.referralCode}`;
+---
+
+<Layout title="Dashboard — TypeMaster" description="Track your typing progression, mistake heatmap, and streaks.">
+  <div class="space-y-8">
+    <!-- Page Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between border-b border-hairline pb-6 gap-4">
+      <div>
+        <h1 class="text-2xl font-bold text-ink">Personal Dashboard</h1>
+        <p class="text-xs text-body">Welcome back, {user.username}. Here is your analytics breakdown.</p>
+      </div>
+      
+      <!-- Referral Link & Streak Info -->
+      <div class="flex flex-wrap items-center gap-3">
+        <div class="flex items-center space-x-1 border border-hairline px-3 py-1.5 bg-canvas-soft rounded-full text-xs font-mono text-warning">
+          <span>🔥</span>
+          <span class="font-bold">Streak: {user.streak} day{user.streak !== 1 ? 's' : ''}</span>
+        </div>
+        <div class="flex items-center space-x-1 border border-hairline px-3 py-1.5 bg-canvas-soft rounded-full text-xs font-mono text-brand-cyan">
+          <span>👥</span>
+          <span class="font-bold">Referred: {referrals.length} user{referrals.length !== 1 ? 's' : ''}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Referral Viral Section -->
+    <div class="p-6 border border-hairline bg-canvas-soft rounded-lg shadow-level-2">
+      <h3 class="text-sm font-semibold text-ink mb-1">Invite Friends & Earn Rewards</h3>
+      <p class="text-xs text-body mb-4">Share your referral link. When friends sign up, they contribute to your referral tier and they help grow TypeMaster!</p>
+      
+      <div class="flex flex-col sm:flex-row gap-3">
+        <input 
+          type="text" 
+          value={referralUrl} 
+          readonly 
+          id="referral-input"
+          class="flex-grow px-3 py-2 border border-hairline bg-canvas-soft-2 rounded text-xs font-mono text-ink outline-none select-all"
+        />
+        <button 
+          id="copy-ref-btn"
+          class="px-4 py-2 bg-ink text-canvas hover:opacity-90 rounded text-xs font-semibold shadow-level-1 transition-opacity whitespace-nowrap"
+        >
+          Copy Link
+        </button>
+      </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="p-4 border border-hairline bg-canvas-soft rounded-lg shadow-level-1 text-center">
+        <div class="text-2xl md:text-3xl font-bold text-ink">{totalTests}</div>
+        <div class="text-[9px] font-mono text-mute mt-1 uppercase tracking-wider">Total Tests Taken</div>
+      </div>
+      <div class="p-4 border border-hairline bg-canvas-soft rounded-lg shadow-level-1 text-center">
+        <div class="text-2xl md:text-3xl font-bold text-brand-cyan">{highestWpm}</div>
+        <div class="text-[9px] font-mono text-mute mt-1 uppercase tracking-wider">Highest WPM</div>
+      </div>
+      <div class="p-4 border border-hairline bg-canvas-soft rounded-lg shadow-level-1 text-center">
+        <div class="text-2xl md:text-3xl font-bold text-brand-violet">{avgWpm}</div>
+        <div class="text-[9px] font-mono text-mute mt-1 uppercase tracking-wider">Average WPM</div>
+      </div>
+      <div class="p-4 border border-hairline bg-canvas-soft rounded-lg shadow-level-1 text-center">
+        <div class="text-2xl md:text-3xl font-bold text-brand-pink">{avgAccuracy}%</div>
+        <div class="text-[9px] font-mono text-mute mt-1 uppercase tracking-wider">Average Accuracy</div>
+      </div>
+    </div>
+
+    <!-- Progression Chart -->
+    <Chart history={chartHistory} client:load />
+
+    <!-- Heatmap & Achievements Split Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Keyboard Heatmap (2 cols on large screens) -->
+      <div class="lg:col-span-2">
+        <Heatmap errorKeys={aggregatedErrorKeys} client:load />
+      </div>
+
+      <!-- Unlocked Achievements list (1 col on large screens) -->
+      <div class="p-6 border border-hairline bg-canvas-soft rounded-lg shadow-level-2 flex flex-col">
+        <h3 class="text-sm font-semibold text-ink mb-1">Badges & Achievements</h3>
+        <p class="text-xs text-body mb-4">Milestones you have achieved typing.</p>
+        
+        {achievements.length === 0 ? (
+          <div class="flex-grow flex items-center justify-center border border-dashed border-hairline p-6 text-center text-xs text-mute font-mono rounded">
+            No achievements unlocked yet. Hit 50 WPM to unlock your first badge!
+          </div>
+        ) : (
+          <div class="space-y-3 flex-grow overflow-y-auto max-h-[260px] pr-1">
+            {achievements.map((ach) => (
+              <div class="flex items-center space-x-3 p-2 border border-hairline bg-canvas-soft-2 rounded-md">
+                <span class="text-2xl">{ach.icon}</span>
+                <div>
+                  <h4 class="text-xs font-bold text-ink">{ach.name}</h4>
+                  <p class="text-[10px] text-body leading-tight mt-0.5">{ach.description}</p>
+                  <span class="text-[8px] font-mono text-mute block mt-1">
+                    Unlocked {new Date(ach.unlockedAt).toLocaleDateString()}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+
+    <!-- Native Ad Placement -->
+    <AdUnit type="dashboard-native" />
+  </div>
+
+  <script>
+    const copyBtn = document.getElementById('copy-ref-btn');
+    const refInput = document.getElementById('referral-input') as HTMLInputElement;
+
+    if (copyBtn && refInput) {
+      copyBtn.addEventListener('click', () => {
+        refInput.select();
+        navigator.clipboard.writeText(refInput.value);
+        copyBtn.textContent = 'Copied!';
+        setTimeout(() => {
+          copyBtn.textContent = 'Copy Link';
+        }, 2000);
+      });
+    }
+  </script>
+</Layout>

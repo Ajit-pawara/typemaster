@@ -1,0 +1,54 @@
+---
+interface Props {
+  list: any[];
+  currentUser: any;
+}
+
+const { list, currentUser } = Astro.props;
+---
+
+{list.length === 0 ? (
+  <div class="p-12 border border-dashed border-hairline rounded-lg text-center text-xs text-mute font-mono bg-canvas-soft">
+    No records found in this timeframe. Be the first to type!
+  </div>
+) : (
+  <div class="border border-hairline bg-canvas-soft rounded-lg shadow-level-2 overflow-hidden">
+    {list.map((item, index) => {
+      const isSelf = currentUser && item.userId.toString() === currentUser.id;
+      let rankColor = 'text-mute';
+      let bgStyle = isSelf ? 'bg-brand-cyan-soft border-l-2 border-l-brand-cyan' : 'border-b border-hairline bg-canvas-soft-2';
+      
+      if (index === 0) rankColor = 'text-amber-400 font-bold';
+      else if (index === 1) rankColor = 'text-slate-300 font-bold';
+      else if (index === 2) rankColor = 'text-amber-600 font-bold';
+
+      return (
+        <div class={`flex items-center justify-between px-6 py-3.5 text-xs ${bgStyle}`}>
+          <div class="flex items-center space-x-4">
+            <span class={`w-6 font-mono text-center text-sm ${rankColor}`}>{index + 1}</span>
+            <a 
+              href={`/profile/${item.username}`}
+              class={`font-semibold transition-colors hover:text-brand-cyan ${isSelf ? 'text-ink' : 'text-body'}`}
+            >
+              {item.username}
+            </a>
+          </div>
+          
+          <div class="flex items-center space-x-6 font-mono text-right">
+            <div>
+              <span class="text-ink font-bold text-sm">{item.wpm}</span> 
+              <span class="text-mute text-[10px]"> WPM</span>
+            </div>
+            <div class="hidden sm:block w-20">
+              <span class="text-body font-semibold">{item.accuracy}%</span>
+              <span class="text-mute text-[9px]"> ACC</span>
+            </div>
+            <span class="text-[9px] px-2 py-0.5 rounded border border-hairline text-mute bg-canvas-soft-2 uppercase">
+              {item.mode}
+            </span>
+          </div>
+        </div>
+      );
+    })}
+  </div>
+)}

@@ -1,0 +1,154 @@
+---
+import Layout from '../layouts/Layout.astro';
+import AdUnit from '../components/AdUnit';
+import LeaderboardList from '../components/LeaderboardList.astro';
+import { getDb } from '../lib/db';
+import { getUserFromRequest } from '../lib/auth';
+
+const user = await getUserFromRequest(Astro.request);
+const db = await getDb();
+
+// MongoDB Aggregation helper to get unique users sorted by highest WPM
+const getLeaderboardData = async (sinceDate: Date | null) => {
+  const matchStage = sinceDate 
+    ? { $match: { createdAt: { $gte: sinceDate } } } 
+    : { $match: {} };
+    
+  const pipeline = [
+    matchStage,
+    { $sort: { wpm: -1, accuracy: -1 } },
+    {
+      $group: {
+        _id: '$userId',
+        wpm: { $first: '$wpm' },
+        accuracy: { $first: '$accuracy' },
+        mode: { $first: '$mode' },
+        createdAt: { $first: '$createdAt' }
+      }
+    },
+    { $sort: { wpm: -1, accuracy: -1 } },
+    { $limit: 20 },
+    {
+      $lookup: {
+        from: 'users',
+        localField: '_id',
+        foreignField: '_id',
+        as: 'user'
+      }
+    },
+    { $unwind: '$user' },
+    {
+      $project: {
+        userId: '$_id',
+        wpm: 1,
+        accuracy: 1,
+        mode: 1,
+        createdAt: 1,
+        username: '$user.username'
+      }
+    }
+  ];
+  
+  return db.collection('test_results').aggregate(pipeline).toArray();
+};
+
+const now = Date.now();
+const daily = await getLeaderboardData(new Date(now - 86400000));
+const weekly = await getLeaderboardData(new Date(now - 86400000 * 7));
+const monthly = await getLeaderboardData(new Date(now - 86400000 * 30));
+const allTime = await getLeaderboardData(null);
+---
+
+<Layout title="Leaderboards — TypeMaster" description="View global top typists across daily, weekly, monthly, and all-time statistics.">
+  <div class="space-y-8">
+    <!-- Page Header -->
+    <div class="border-b border-hairline pb-6 text-center max-w-xl mx-auto">
+      <h1 class="text-2xl font-bold text-ink">Global Typing Leaderboards</h1>
+      <p class="text-xs text-body mt-2">See how you measure up against the fastest typists in the community.</p>
+    </div>
+
+    <!-- Leaderboard Tabs Header -->
+    <div class="flex justify-center border-b border-hairline pb-1 max-w-md mx-auto">
+      <div class="flex space-x-1 font-mono text-xs">
+        {['daily', 'weekly', 'monthly', 'alltime'].map(tab => (
+          <button
+            id={`tab-btn-${tab}`}
+            class={`px-4 py-2 border-b-2 font-medium transition-all focus:outline-none capitalize ${
+              tab === 'daily'
+                ? 'border-brand-cyan text-brand-cyan font-bold'
+                : 'border-transparent text-body hover:text-ink'
+            }`}
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
+    </div>
+
+    <!-- Leaderboard Panels Container -->
+    <div class="max-w-2xl mx-auto">
+      <!-- Daily Panel -->
+      <div id="panel-daily" class="space-y-3">
+        <h3 class="text-xs font-mono text-mute uppercase tracking-widest text-center mb-4">Last 24 Hours</h3>
+        <LeaderboardList list={daily} currentUser={user} />
+      </div>
+
+      <!-- Weekly Panel -->
+      <div id="panel-weekly" class="space-y-3 hidden">
+        <h3 class="text-xs font-mono text-mute uppercase tracking-widest text-center mb-4">Last 7 Days</h3>
+        <LeaderboardList list={weekly} currentUser={user} />
+      </div>
+
+      <!-- Monthly Panel -->
+      <div id="panel-monthly" class="space-y-3 hidden">
+        <h3 class="text-xs font-mono text-mute uppercase tracking-widest text-center mb-4">Last 30 Days</h3>
+        <LeaderboardList list={monthly} currentUser={user} />
+      </div>
+
+      <!-- All-time Panel -->
+      <div id="panel-alltime" class="space-y-3 hidden">
+        <h3 class="text-xs font-mono text-mute uppercase tracking-widest text-center mb-4">All-Time Records</h3>
+        <LeaderboardList list={allTime} currentUser={user} />
+      </div>
+    </div>
+
+    <!-- Banner ad below the leaderboard lists -->
+    <div class="max-w-2xl mx-auto pt-6">
+      <AdUnit type="banner" />
+    </div>
+  </div>
+
+  <script>
+    const tabs = ['daily', 'weekly', 'monthly', 'alltime'];
+    
+    tabs.forEach(tab => {
+      const btn = document.getElementById(`tab-btn-${tab}`);
+      if (btn) {
+        btn.addEventListener('click', () => {
+          // Update Active Button Style
+          tabs.forEach(t => {
+            const b = document.getElementById(`tab-btn-${t}`);
+            const panel = document.getElementById(`panel-${t}`);
+            if (b) {
+              if (t === tab) {
+                b.classList.remove('border-transparent', 'text-body');
+                b.classList.add('border-brand-cyan', 'text-brand-cyan', 'font-bold');
+              } else {
+                b.classList.remove('border-brand-cyan', 'text-brand-cyan', 'font-bold');
+                b.classList.add('border-transparent', 'text-body');
+              }
+            }
+            // Show/Hide Panel
+            if (panel) {
+              if (t === tab) {
+                panel.classList.remove('hidden');
+              } else {
+                panel.classList.add('hidden');
+              }
+            }
+          });
+        });
+      }
+    });
+  </script>
+</Layout>

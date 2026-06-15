@@ -1,0 +1,120 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  /* Fonts */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+
+  /* Colors - Stark Dark Mode inspired by Vercel style */
+  --color-canvas: #000000;
+  --color-canvas-soft: #0a0a0a;
+  --color-canvas-soft-2: #121212;
+  --color-ink: #ffffff;
+  --color-body: #a0a0a0;
+  --color-mute: #555555;
+  --color-hairline: #1e1e1e;
+  --color-hairline-strong: #2e2e2e;
+  
+  --color-brand-cyan: #50e3c2;
+  --color-brand-cyan-soft: rgba(80, 227, 194, 0.15);
+  --color-brand-violet: #7928ca;
+  --color-brand-violet-soft: rgba(121, 40, 202, 0.15);
+  --color-brand-pink: #ff0080;
+  --color-brand-pink-soft: rgba(255, 0, 128, 0.15);
+  
+  --color-link: #0070f3;
+  --color-link-deep: #0761d1;
+  --color-success: #0070f3;
+  --color-error: #ff4d4d;
+  --color-error-soft: rgba(255, 77, 77, 0.15);
+  --color-warning: #f5a623;
+  --color-warning-soft: rgba(245, 166, 35, 0.15);
+  
+  /* Brand Gradient Stops */
+  --color-gradient-develop-start: #007cf0;
+  --color-gradient-develop-end: #00dfd8;
+  --color-gradient-preview-start: #7928ca;
+  --color-gradient-preview-end: #ff0080;
+  --color-gradient-ship-start: #ff4d4d;
+  --color-gradient-ship-end: #f9cb28;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Atmospheric Mesh Gradient Utility */
+@utility bg-mesh-gradient {
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(0, 124, 240, 0.15) 0px, transparent 50%),
+    radial-gradient(at 50% 0%, rgba(121, 40, 202, 0.12) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(255, 77, 77, 0.12) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(249, 203, 40, 0.08) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, rgba(80, 227, 194, 0.1) 0px, transparent 50%);
+  background-size: 100% 100%;
+}
+
+/* Card Elevation styles from DESIGN.md */
+@utility shadow-level-1 {
+  box-shadow: 0 0 0 1px var(--color-hairline);
+}
+
+@utility shadow-level-2 {
+  box-shadow: 
+    0 0 0 1px var(--color-hairline),
+    0px 1px 1px rgba(0, 0, 0, 0.3),
+    0px 2px 2px rgba(0, 0, 0, 0.5);
+}
+
+@utility shadow-level-3 {
+  box-shadow: 
+    0 0 0 1px var(--color-hairline),
+    0px 2px 2px rgba(0, 0, 0, 0.4),
+    0px 8px 8px -8px rgba(0, 0, 0, 0.6);
+}
+
+@utility shadow-level-4 {
+  box-shadow: 
+    0 0 0 1px var(--color-hairline-strong),
+    0px 2px 2px rgba(0, 0, 0, 0.4),
+    0px 8px 16px -4px rgba(0, 0, 0, 0.6);
+}
+
+@utility shadow-level-5 {
+  box-shadow: 
+    0 0 0 1px var(--color-hairline-strong),
+    0px 1px 1px rgba(0, 0, 0, 0.3),
+    0px 8px 16px -4px rgba(0, 0, 0, 0.5),
+    0px 24px 32px -8px rgba(0, 0, 0, 0.7);
+}
+
+/* Typing Test Caret Animation */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@utility caret-blink {
+  animation: blink 1s infinite;
+}
+
+/* Hide scrollbar utility */
+@utility no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+  
+  &::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
+  }
+}

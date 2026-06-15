@@ -1,0 +1,267 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import AdUnit from '../../components/AdUnit';
+import { getDb } from '../../lib/db';
+
+const { username } = Astro.params;
+
+const db = await getDb();
+
+// Find user profile
+const profileUser = await db.collection('users').findOne({ 
+  username: { $regex: new RegExp(`^${username}$`, 'i') } 
+});
+
+if (!profileUser) {
+  return Astro.redirect('/404'); // redirect to 404 if not found
+}
+
+const profileUserId = profileUser._id;
+
+// Fetch stats
+const results = await db.collection('test_results')
+  .find({ userId: profileUserId })
+  .sort({ createdAt: -1 })
+  .toArray();
+
+const totalTests = results.length;
+const highestWpm = results.reduce((max, r) => r.wpm > max ? r.wpm : max, 0);
+const avgWpm = totalTests > 0 
+  ? Math.round(results.reduce((sum, r) => sum + r.wpm, 0) / totalTests) 
+  : 0;
+const avgAccuracy = totalTests > 0 
+  ? Math.round(results.reduce((sum, r) => sum + r.accuracy, 0) / totalTests) 
+  : 0;
+
+// Fetch achievements
+const achievements = await db.collection('achievements')
+  .find({ userId: profileUserId })
+  .sort({ unlockedAt: -1 })
+  .toArray();
+
+// Last 10 tests
+const recentTests = results.slice(0, 10);
+---
+
+<Layout title={`${profileUser.username}'s Profile — TypeMaster`} description={`View ${profileUser.username}'s typing stats, highest WPM, accuracy, streaks, and unlocked badges.`}>
+  <div class="space-y-8 max-w-4xl mx-auto">
+    
+    <!-- Profile Header Card -->
+    <div class="p-8 border border-hairline bg-canvas-soft rounded-lg shadow-level-3 relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+      <!-- Background Mesh circle accents -->
+      <div class="absolute -top-16 -left-16 w-48 h-48 bg-brand-cyan/5 rounded-full blur-2xl pointer-events-none"></div>
+      <div class="absolute -bottom-16 -right-16 w-48 h-48 bg-brand-violet/5 rounded-full blur-2xl pointer-events-none"></div>
+
+      <div class="flex items-center space-x-4 z-10">
+        <div class="w-14 h-14 rounded-full bg-brand-violet-soft border border-brand-violet/30 flex items-center justify-center text-brand-violet text-2xl font-bold select-none uppercase shadow-level-1">
+          {profileUser.username[0]}
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold text-ink">{profileUser.username}</h1>
+          <p class="text-[10px] font-mono text-mute mt-1">
+            MEMBER SINCE {new Date(profileUser.createdAt).toLocaleDateString()}
+          </p>
+        </div>
+      </div>
+
+      <!-- Streak and referral indicators -->
+      <div class="flex flex-wrap items-center gap-3 z-10">
+        {profileUser.streak > 0 && (
+          <div class="flex items-center space-x-1 border border-hairline px-3 py-1.5 bg-canvas-soft-2 rounded-full text-xs font-mono text-warning">
+            <span>🔥</span>
+            <span class="font-bold">Streak: {profileUser.streak} days</span>
+          </div>
+        )}
+        <button
+          id="profile-share-btn"
+          data-username={profileUser.username}
+          data-wpm={highestWpm}
+          data-acc={avgAccuracy}
+          data-tests={totalTests}
+          data-streak={profileUser.streak}
+          class="px-4 py-1.5 bg-ink text-canvas hover:opacity-90 text-xs font-semibold rounded-full shadow-level-1 transition-opacity flex items-center space-x-1.5"
+        >
+          <span>🖼️</span>
+          <span>Download Stats Card</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="p-4 border border-hairline bg-canvas-soft rounded-lg shadow-level-1 text-center">
+        <div class="text-2xl md:text-3xl font-bold text-brand-cyan">{highestWpm}</div>
+        <div class="text-[9px] font-mono text-mute mt-1 uppercase tracking-wider">Highest WPM</div>
+      </div>
+      <div class="p-4 border border-hairline bg-canvas-soft rounded-lg shadow-level-1 text-center">
+        <div class="text-2xl md:text-3xl font-bold text-brand-violet">{avgWpm}</div>
+        <div class="text-[9px] font-mono text-mute mt-1 uppercase tracking-wider">Average WPM</div>
+      </div>
+      <div class="p-4 border border-hairline bg-canvas-soft rounded-lg shadow-level-1 text-center">
+        <div class="text-2xl md:text-3xl font-bold text-brand-pink">{avgAccuracy}%</div>
+        <div class="text-[9px] font-mono text-mute mt-1 uppercase tracking-wider">Average Accuracy</div>
+      </div>
+      <div class="p-4 border border-hairline bg-canvas-soft rounded-lg shadow-level-1 text-center">
+        <div class="text-2xl md:text-3xl font-bold text-ink">{totalTests}</div>
+        <div class="text-[9px] font-mono text-mute mt-1 uppercase tracking-wider">Tests Completed</div>
+      </div>
+    </div>
+
+    <!-- Split Panel: Recent Tests & Achievements -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      
+      <!-- Achievements Column -->
+      <div class="p-6 border border-hairline bg-canvas-soft rounded-lg shadow-level-2 md:col-span-1">
+        <h3 class="text-sm font-semibold text-ink mb-1">Badges Unlocked</h3>
+        <p class="text-[10px] text-body mb-4">Milestones achieved by {profileUser.username}.</p>
+        
+        {achievements.length === 0 ? (
+          <div class="p-8 border border-dashed border-hairline rounded text-center text-xs text-mute font-mono">
+            No achievements unlocked yet.
+          </div>
+        ) : (
+          <div class="space-y-3 max-h-[360px] overflow-y-auto pr-1">
+            {achievements.map((ach) => (
+              <div class="flex items-center space-x-3 p-2.5 border border-hairline bg-canvas-soft-2 rounded-md">
+                <span class="text-2xl select-none">{ach.icon}</span>
+                <div>
+                  <h4 class="text-xs font-bold text-ink">{ach.name}</h4>
+                  <p class="text-[9px] text-body mt-0.5 leading-tight">{ach.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <!-- Recent Tests Column -->
+      <div class="p-6 border border-hairline bg-canvas-soft rounded-lg shadow-level-2 md:col-span-2">
+        <h3 class="text-sm font-semibold text-ink mb-1">Recent Activity</h3>
+        <p class="text-[10px] text-body mb-4">Last 10 typing tests completed.</p>
+        
+        {recentTests.length === 0 ? (
+          <div class="p-8 border border-dashed border-hairline rounded text-center text-xs text-mute font-mono">
+            No recent activity recorded.
+          </div>
+        ) : (
+          <div class="space-y-2 max-h-[360px] overflow-y-auto pr-1">
+            {recentTests.map((item) => (
+              <div class="flex items-center justify-between p-2.5 border border-hairline bg-canvas-soft-2 rounded-md text-xs font-mono">
+                <div class="flex items-center space-x-3">
+                  <span class="text-brand-cyan font-bold">{item.wpm} WPM</span>
+                  <span class="text-mute">•</span>
+                  <span class="text-body">{item.accuracy}% Accuracy</span>
+                </div>
+                <div class="flex items-center space-x-2 text-[10px] text-mute">
+                  <span class="px-1.5 py-0.2 border border-hairline bg-canvas-soft rounded uppercase text-[8px]">
+                    {item.mode}
+                  </span>
+                  <span>{new Date(item.createdAt).toLocaleDateString()}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+
+    <!-- Banner ad slot below profile cards -->
+    <AdUnit type="banner" />
+  </div>
+
+  <script>
+    const shareBtn = document.getElementById('profile-share-btn');
+    if (shareBtn) {
+      shareBtn.addEventListener('click', () => {
+        const username = shareBtn.getAttribute('data-username') || 'Typer';
+        const wpm = shareBtn.getAttribute('data-wpm') || '0';
+        const acc = shareBtn.getAttribute('data-acc') || '100';
+        const tests = shareBtn.getAttribute('data-tests') || '0';
+        const streak = shareBtn.getAttribute('data-streak') || '0';
+
+        const canvas = document.createElement('canvas');
+        canvas.width = 800;
+        canvas.height = 450;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        // 1. Dark background
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // 2. Gradients spotlights
+        ctx.globalCompositeOperation = 'screen';
+        let grad = ctx.createRadialGradient(100, 100, 50, 200, 200, 300);
+        grad.addColorStop(0, 'rgba(80, 227, 194, 0.15)');
+        grad.addColorStop(1, 'transparent');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(200, 200, 300, 0, Math.PI*2);
+        ctx.fill();
+
+        grad = ctx.createRadialGradient(700, 350, 50, 600, 300, 300);
+        grad.addColorStop(0, 'rgba(121, 40, 202, 0.12)');
+        grad.addColorStop(1, 'transparent');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(600, 300, 300, 0, Math.PI*2);
+        ctx.fill();
+        ctx.globalCompositeOperation = 'source-over';
+
+        // 3. Outlines
+        ctx.strokeStyle = '#1e1e1e';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
+
+        // 4. Header Logo
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '600 24px Inter, system-ui, sans-serif';
+        ctx.fillText('TypeMaster', 50, 70);
+        
+        ctx.fillStyle = '#50e3c2';
+        ctx.font = '500 12px "JetBrains Mono", monospace';
+        ctx.fillText('.dev', 185, 58);
+
+        // Username
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '500 18px Inter, system-ui, sans-serif';
+        ctx.fillText(`@${username}`, 50, 120);
+
+        // 5. Drawing values
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '600 75px Inter, system-ui, sans-serif';
+        ctx.fillText(wpm, 90, 240);
+        
+        ctx.fillStyle = '#a0a0a0';
+        ctx.font = '500 13px "JetBrains Mono", monospace';
+        ctx.fillText('HIGHEST WORDS/MIN', 90, 280);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '600 75px Inter, system-ui, sans-serif';
+        ctx.fillText(`${acc}%`, 450, 240);
+
+        ctx.fillStyle = '#a0a0a0';
+        ctx.font = '500 13px "JetBrains Mono", monospace';
+        ctx.fillText('AVERAGE ACCURACY', 450, 280);
+
+        // Divider
+        ctx.fillStyle = '#555555';
+        ctx.fillRect(50, 340, canvas.width - 100, 1);
+
+        // Footer settings
+        ctx.fillStyle = '#888888';
+        ctx.font = '400 12px "JetBrains Mono", monospace';
+        ctx.fillText(`TOTAL TESTS: ${tests}`, 70, 385);
+        ctx.fillText(`DAILY STREAK: ${streak} DAYS`, 310, 385);
+        ctx.fillText(`DATE: ${new Date().toLocaleDateString()}`, 580, 385);
+
+        // Trigger Download
+        const dataUrl = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.download = `typemaster-${username}-stats.png`;
+        link.href = dataUrl;
+        link.click();
+      });
+    }
+  </script>
+</Layout>
