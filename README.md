@@ -1,43 +1,69 @@
-# Astro Starter Kit: Minimal
+# ⌨️ TypeMaster — Premium Typing Speed & Accuracy Trainer
 
-```sh
-npm create astro@latest -- --template minimal
-```
+Developed with ❤️ by **[Ajit Pawara](https://github.com/Ajit-pawara)**
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+TypeMaster is a sleek, modern, and highly interactive typing speed application designed to help developers and typists improve their speed (WPM) and spelling accuracy. It features satisfying mechanical keyboard sound effects, detailed visual telemetry, achievements, and multiple custom training modules.
 
-## 🚀 Project Structure
+---
 
-Inside of your Astro project, you'll see the following folders and files:
+## 🌟 Key Features
 
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
-```
+*   🔊 **Real-time Mechanical Audio Synthesizer:** Satisfying keypress sound effects (mechanical click, space, enter, and warning chimes) built using the low-latency Web Audio API (reusing a single AudioContext to prevent lag).
+*   ⏱️ **Flexible Session Durations:** Practice with custom timers ranging from a quick **30-second** sprint to a **30-minute** endurance session.
+*   🔄 **Infinite Typing Flow:** Regular practice sessions will automatically and seamlessly append new text paragraphs as you type, allowing for continuous practice without early cutoffs.
+*   📚 **10 Custom Practice Categories:**
+    *   **Standard:** Beginner, Intermediate, Advanced, and captivating long Stories.
+    *   **Spelling Complexity:** Specialized lists for Easy, Medium, and Hard English spellings.
+    *   **Specialty:** Coding snippets (JavaScript/TypeScript/React), Numbers, and Symbols.
+*   📊 **Visual Telemetry:** Detailed post-test analytics showing WPM, accuracy %, error count, error heatmaps, and customizable PNG share-card generators.
+*   🏆 **Streaks & Leaderboards:** Full registration and profile system to track daily streaks, unlock milestones, and rank on global leaderboards.
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+---
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+## 🚀 Quick Start (Run Locally)
 
-Any static assets, like images, can be placed in the `public/` directory.
+### 📋 Prerequisites
+Make sure you have the following installed on your machine:
+1. **Node.js** (version 22.12.0 or higher recommended)
+2. **MongoDB** (running locally on port `27017`)
 
-## 🧞 Commands
+### 🛠️ Setup Instructions
+1.  **Clone your repository and navigate to the folder:**
+    ```bash
+    cd "/home/robin/Desktop/New jurney/typemaster"
+    ```
+2.  **Install project dependencies:**
+    ```bash
+    npm install
+    ```
+3.  **Launch the development server:**
+    ```bash
+    npm run dev
+    ```
+4.  **Open in your browser:**
+    Navigate to **[http://localhost:4321](http://localhost:4321)** to start typing!
 
-All commands are run from the root of the project, from a terminal:
+---
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+## 🛠️ Technology Stack
 
-## 👀 Want to learn more?
+*   **Framework:** [Astro](https://astro.build/) (Server-Side Rendering mode)
+*   **Frontend Logic:** [React](https://react.dev/) (Interactive test components & state)
+*   **Styling:** [Tailwind CSS v4](https://tailwindcss.com/)
+*   **Database:** [MongoDB](https://www.mongodb.com/) (User credentials, stats history, streaks, achievements)
+*   **Audio Engine:** HTML5 Web Audio API (OscillatorNode & GainNode synthesizer)
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+---
+
+## 🧞 Command Reference
+
+| Command | Action |
+| :--- | :--- |
+| `npm install` | Installs dependencies |
+| `npm run dev` | Starts local dev server at `localhost:4321` |
+| `npm run build` | Builds the production standalone server to `./dist/` |
+| `npm run preview` | Previews the build output locally |
+| `npm run dev -- --host` | Exposes the dev server to your local network |
+
+---
+Enjoy typing and leveling up your speed! If you find this project useful, feel free to give it a star on [GitHub](https://github.com/Ajit-pawara/typemaster).
