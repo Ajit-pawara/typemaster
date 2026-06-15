@@ -38,6 +38,14 @@ const isActive = (path: string) => {
         Daily Challenge
       </a>
       <a 
+        href="/racer" 
+        class={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+          isActive('/racer') ? 'text-ink bg-canvas-soft-2 font-semibold' : 'text-body hover:text-ink'
+        }`}
+      >
+        🏎️ TypeRacer
+      </a>
+      <a 
         href="/leaderboards" 
         class={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
           isActive('/leaderboards') ? 'text-ink bg-canvas-soft-2 font-semibold' : 'text-body hover:text-ink'

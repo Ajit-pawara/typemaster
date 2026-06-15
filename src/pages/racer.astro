@@ -1,0 +1,26 @@
+---
+import Layout from '../layouts/Layout.astro';
+import TypeRacerGame from '../components/TypeRacerGame';
+import { getUserFromRequest } from '../lib/auth';
+
+// Authenticate user (optional for play, needed for tracking statistics)
+const user = await getUserFromRequest(Astro.request);
+---
+
+<Layout title="TypeRacer — TypeMaster" description="Race your car to the finish line in real-time by typing as fast and accurately as you can. Compete against bots or online opponents!">
+  <div class="space-y-6">
+    <!-- Page Header -->
+    <div class="border-b border-hairline pb-4">
+      <div>
+        <span class="text-[10px] font-mono text-brand-cyan uppercase tracking-widest border border-brand-cyan/20 px-2 py-0.5 rounded bg-brand-cyan-soft mb-2 inline-block">
+          Car Racing Arena
+        </span>
+        <h1 class="text-2xl font-bold text-ink">TypeRacer Arena</h1>
+        <p class="text-xs text-body">Exceed your limits. Race your car down the track by typing. The faster you type, the faster your car moves!</p>
+      </div>
+    </div>
+
+    <!-- TypeRacer React Game Component -->
+    <TypeRacerGame user={user} client:load />
+  </div>
+</Layout>
