@@ -24,6 +24,36 @@ const TEXT_BANKS: Record<string, string[]> = {
     'A database index is a data structure that improves the speed of data retrieval operations on a database table at the cost of additional writes and storage space.',
     'The Astro framework utilizes an Islands Architecture, rendering HTML on the server and hydration of interactive components only where necessary.'
   ],
+  stories: [
+    'Once upon a time, in a deep, whispering forest, lived a tiny clockwork dragon named Barnaby. Unlike standard dragons who breathed fire and hoarded gold, Barnaby breathed soft, glowing bubbles that smelled of lavender and hoarded lost clock gears. Every night, Barnaby would wander the forest floor, searching for discarded parts from travelers pocketwatches, dreaming of one day building a grand clock tower.',
+    'Beneath the neon canopy of Neo-Tokyo, Kenji adjusted his cybernetic visor. The rain-slicked streets reflected the towering holographic advertisements of mega-corporations. Tonight was the night he would attempt to breach the firewall of Arasaka Systems. With a deep breath, his fingers flew across the virtual projection keyboard, writing lines of code that would rewrite his destiny.',
+    'Deep in the Marianas Trench, where sunlight is but a distant memory, a glowing submarine named the Nautilus lowered its robotic arm. Dr. Elena Vance watched the video feed as a bizarre, luminous coral-like structure came into focus. It pulsed with a rhythmic green light, defying all known biology. This discovery could unlock clean, endless energy for the surface world.',
+    'Under the heavy heat of the Serengeti, a young cheetah named Kaelen stretched his sleek, spotted limbs. The golden grasslands rippled under the afternoon breeze. A herd of gazelles grazed peacefully in the distance. Kaelen knew he had to be patient; one wrong movement or rustle of grass could alert his prey, ending the hunt before it even began.'
+  ],
+  spelling_easy: [
+    'the cat sat on the red mat and fell asleep',
+    'we like to play in the park on a sunny day',
+    'he went to the small shop to buy some milk and bread',
+    'she can run very fast when she wears her blue shoes',
+    'it is good to drink water and eat fresh fruit every day',
+    'my dog loves to run after the yellow ball'
+  ],
+  spelling_medium: [
+    'A beautiful garden requires daily maintenance and regular watering.',
+    'The calendar schedule was changed due to an unexpected challenge.',
+    'Playing rhythm instruments can help children develop coordination skills.',
+    'We traveled through the quiet mountain valley during our autumn vacation.',
+    'A positive attitude can significantly improve your daily performance.',
+    'The scientist made an important discovery about animal behavior.'
+  ],
+  spelling_hard: [
+    'Achieving proper accommodation requires understanding complex bureaucracy.',
+    'His idiosyncrasy was to maintain a colloquial yet conscientious tone.',
+    'She sent a detailed questionnaire to confirm the occurrence of the event.',
+    'A liaison officer is responsible for coordinating international relations.',
+    'The pharmaceutical company developed an effective cure for the disease.',
+    'His thesis on physics was a brilliant piece of academic writing.'
+  ],
   numbers: [
     '1029 3847 5620 9182 7364 8593 2018 4756 9302 1284 7392 4810',
     '982.10 472.03 104.94 829.40 572.11 394.02 810.59 274.66',
@@ -41,6 +71,19 @@ const TEXT_BANKS: Record<string, string[]> = {
     'function parseUrl(url) {\n  const match = url.match(/^(https?:)\\/\\/([^\\/?#]+)/);\n  return match && match[2];\n}',
     'export async function getStaticProps() {\n  const res = await fetch(\'https://api.example.com\');\n  return { props: { data: await res.json() } };\n}'
   ]
+};
+
+const MODES_INFO: Record<string, { label: string; category: string }> = {
+  beginner: { label: 'Beginner', category: 'Standard' },
+  intermediate: { label: 'Intermediate', category: 'Standard' },
+  advanced: { label: 'Advanced', category: 'Standard' },
+  stories: { label: 'Stories', category: 'Standard' },
+  coding: { label: 'Coding', category: 'Technical' },
+  numbers: { label: 'Numbers', category: 'Technical' },
+  symbols: { label: 'Symbols', category: 'Technical' },
+  spelling_easy: { label: 'Easy Spelling', category: 'Spelling' },
+  spelling_medium: { label: 'Medium Spelling', category: 'Spelling' },
+  spelling_hard: { label: 'Hard Spelling', category: 'Spelling' }
 };
 
 // Web Audio API Synthesizer for high-performance sound effects
@@ -368,7 +411,14 @@ export const TypingTest: React.FC<TypingTestProps> = ({
 
     // Auto-finish if all text is typed
     if (inputVal.length >= text.length) {
-      finishTest();
+      if (isChallenge) {
+        finishTest();
+      } else {
+        // Infinite mode: append another random text from the active bank
+        const bank = TEXT_BANKS[mode] || TEXT_BANKS.beginner;
+        const newText = bank[Math.floor(Math.random() * bank.length)];
+        setText(prev => prev + ' ' + newText);
+      }
     }
   };
 
@@ -502,40 +552,95 @@ export const TypingTest: React.FC<TypingTestProps> = ({
     <div className="w-full" ref={containerRef}>
       {/* Test Options Selection (Not displayed in daily challenges) */}
       {!isChallenge && !isActive && !isFinished && (
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 border-b border-hairline pb-4">
-          <div className="flex items-center space-x-1 overflow-x-auto pb-2 md:pb-0 no-scrollbar">
-            {['beginner', 'intermediate', 'advanced', 'numbers', 'symbols', 'coding'].map(m => (
-              <button
-                key={m}
-                onClick={() => setMode(m)}
-                className={`px-3 py-1.5 rounded-full text-xs font-mono transition-colors whitespace-nowrap ${
-                  mode === m
-                    ? 'bg-ink text-canvas font-semibold shadow-level-1'
-                    : 'text-body hover:bg-canvas-soft-2 border border-hairline'
-                }`}
-              >
-                {m.toUpperCase()}
-              </button>
-            ))}
+        <div className="flex flex-col gap-4 mb-6 border-b border-hairline pb-4">
+          <div className="flex flex-wrap items-start gap-x-6 gap-y-4">
+            {/* Standard Modes */}
+            <div className="flex flex-col gap-1.5">
+              <span className="text-[10px] text-mute uppercase font-mono tracking-wider font-semibold">Standard Modes</span>
+              <div className="flex flex-wrap gap-1">
+                {['beginner', 'intermediate', 'advanced', 'stories'].map(m => (
+                  <button
+                    key={m}
+                    onClick={() => setMode(m)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-mono transition-all whitespace-nowrap ${
+                      mode === m
+                        ? 'bg-ink text-canvas font-semibold shadow-level-1'
+                        : 'text-body hover:bg-canvas-soft-2 border border-hairline'
+                    }`}
+                  >
+                    {MODES_INFO[m]?.label || m.toUpperCase()}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Spelling Complexity */}
+            <div className="flex flex-col gap-1.5">
+              <span className="text-[10px] text-mute uppercase font-mono tracking-wider font-semibold">Spelling Complexity</span>
+              <div className="flex flex-wrap gap-1">
+                {['spelling_easy', 'spelling_medium', 'spelling_hard'].map(m => (
+                  <button
+                    key={m}
+                    onClick={() => setMode(m)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-mono transition-all whitespace-nowrap ${
+                      mode === m
+                        ? 'bg-ink text-canvas font-semibold shadow-level-1'
+                        : 'text-body hover:bg-canvas-soft-2 border border-hairline'
+                    }`}
+                  >
+                    {MODES_INFO[m]?.label.replace(' Spelling', '') || m.toUpperCase()}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Technical Modes */}
+            <div className="flex flex-col gap-1.5">
+              <span className="text-[10px] text-mute uppercase font-mono tracking-wider font-semibold">Specialty</span>
+              <div className="flex flex-wrap gap-1">
+                {['coding', 'numbers', 'symbols'].map(m => (
+                  <button
+                    key={m}
+                    onClick={() => setMode(m)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-mono transition-all whitespace-nowrap ${
+                      mode === m
+                        ? 'bg-ink text-canvas font-semibold shadow-level-1'
+                        : 'text-body hover:bg-canvas-soft-2 border border-hairline'
+                    }`}
+                  >
+                    {MODES_INFO[m]?.label || m.toUpperCase()}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
           
-          <div className="flex items-center space-x-1">
-            {[15, 30, 60, 120].map(d => (
-              <button
-                key={d}
-                onClick={() => {
-                  setDuration(d);
-                  setTimeLeft(d);
-                }}
-                className={`px-3 py-1 text-xs font-mono transition-colors ${
-                  duration === d
-                    ? 'text-brand-cyan font-bold border-b border-brand-cyan'
-                    : 'text-body hover:text-ink'
-                }`}
-              >
-                {d}s
-              </button>
-            ))}
+          {/* Time Selector */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-hairline">
+            <div className="flex items-center space-x-2">
+              <span className="text-[10px] text-mute uppercase font-mono tracking-wider font-semibold">Duration:</span>
+              <div className="flex flex-wrap gap-1.5">
+                {[30, 60, 120, 300, 600, 900, 1200, 1800].map(d => (
+                  <button
+                    key={d}
+                    onClick={() => {
+                      setDuration(d);
+                      setTimeLeft(d);
+                    }}
+                    className={`px-2.5 py-1 text-xs font-mono transition-colors rounded-md ${
+                      duration === d
+                        ? 'bg-brand-cyan/20 text-brand-cyan font-bold border border-brand-cyan/30'
+                        : 'text-body hover:text-ink hover:bg-canvas-soft border border-transparent'
+                    }`}
+                  >
+                    {d >= 60 ? `${d / 60}m` : `${d}s`}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="text-[10px] text-mute font-mono">
+              Selected mode: <span className="text-brand-cyan font-semibold">{MODES_INFO[mode]?.label || mode}</span>
+            </div>
           </div>
         </div>
       )}
