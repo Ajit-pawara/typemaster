@@ -61,7 +61,7 @@ const getAudioContext = (): AudioContext | null => {
   return sharedAudioCtx;
 };
 
-const playKeySound = (type: 'correct' | 'wrong' | 'space' | 'enter', volume: number = 0.08) => {
+const playKeySound = (type: 'correct' | 'wrong' | 'space' | 'enter', volume: number = 0.25) => {
   try {
     const ctx = getAudioContext();
     if (!ctx) return;
@@ -76,46 +76,46 @@ const playKeySound = (type: 'correct' | 'wrong' | 'space' | 'enter', volume: num
       // Gentle mechanical-like click: short decay, medium pitch
       osc.type = 'sine';
       osc.frequency.setValueAtTime(600, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(150, ctx.currentTime + 0.04);
+      osc.frequency.exponentialRampToValueAtTime(150, ctx.currentTime + 0.08);
       
       gain.gain.setValueAtTime(volume, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
-      
-      osc.start();
-      osc.stop(ctx.currentTime + 0.04);
-    } else if (type === 'space') {
-      // Woodblock-like spacebar sound: slightly lower pitch, slightly longer decay
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(320, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.06);
-      
-      gain.gain.setValueAtTime(volume * 1.2, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.06);
-      
-      osc.start();
-      osc.stop(ctx.currentTime + 0.06);
-    } else if (type === 'enter') {
-      // Typewriter bell/ding sound or crisp enter click
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(800, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.08);
-      
-      gain.gain.setValueAtTime(volume * 1.5, ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
       
       osc.start();
       osc.stop(ctx.currentTime + 0.08);
+    } else if (type === 'space') {
+      // Woodblock-like spacebar sound: slightly lower pitch, slightly longer decay
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(320, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.1);
+      
+      gain.gain.setValueAtTime(volume * 1.2, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+      
+      osc.start();
+      osc.stop(ctx.currentTime + 0.1);
+    } else if (type === 'enter') {
+      // Typewriter bell/ding sound or crisp enter click
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(800, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.15);
+      
+      gain.gain.setValueAtTime(volume * 1.5, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+      
+      osc.start();
+      osc.stop(ctx.currentTime + 0.15);
     } else if (type === 'wrong') {
       // Low friction error buzz: sawtooth, pitch decline
       osc.type = 'sawtooth';
       osc.frequency.setValueAtTime(140, ctx.currentTime);
-      osc.frequency.linearRampToValueAtTime(80, ctx.currentTime + 0.12);
+      osc.frequency.linearRampToValueAtTime(80, ctx.currentTime + 0.15);
       
       gain.gain.setValueAtTime(volume * 0.9, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
       
       osc.start();
-      osc.stop(ctx.currentTime + 0.12);
+      osc.stop(ctx.currentTime + 0.15);
     }
   } catch (e) {
     console.error('Audio synthesis failed:', e);
@@ -158,6 +158,9 @@ export const TypingTest: React.FC<TypingTestProps> = ({
     setSoundEnabled(newVal);
     if (typeof window !== 'undefined') {
       localStorage.setItem('typemaster_sound_enabled', String(newVal));
+      if (newVal) {
+        getAudioContext();
+      }
     }
   };
   const [typedText, setTypedText] = useState<string>('');
@@ -305,6 +308,9 @@ export const TypingTest: React.FC<TypingTestProps> = ({
 
   const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     if (isFinished) return;
+    
+    // Ensure AudioContext is initialized/resumed on keystroke user gesture
+    getAudioContext();
     
     const inputVal = e.target.value;
     
@@ -461,6 +467,8 @@ export const TypingTest: React.FC<TypingTestProps> = ({
 
   const handleContainerClick = () => {
     if (inputRef.current) inputRef.current.focus();
+    // Warm up the AudioContext on click user gesture
+    getAudioContext();
   };
 
   // Render typing letters
