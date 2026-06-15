@@ -1,6 +1,16 @@
 # ⌨️ TypeMaster — Premium Typing Speed & Accuracy Trainer
 
-Developed with ❤️ by **[Ajit Pawara](https://github.com/Ajit-pawara)**
+<div align="center">
+
+[![Astro](https://img.shields.io/badge/Astro-FF5D01?style=for-the-badge&logo=astro&logoColor=white)](https://astro.build/)
+[![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://react.dev/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
+[![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+
+**Developed with ❤️ by [Ajit Pawara](https://github.com/Ajit-pawara)**
+
+</div>
 
 TypeMaster is a sleek, modern, and highly interactive typing speed application designed to help developers and typists improve their speed (WPM) and spelling accuracy. It features satisfying mechanical keyboard sound effects, detailed visual telemetry, achievements, and multiple custom training modules.
 
@@ -45,25 +55,27 @@ Make sure you have the following installed on your machine:
 
 ---
 
-## 🛠️ Technology Stack
-
-*   **Framework:** [Astro](https://astro.build/) (Server-Side Rendering mode)
-*   **Frontend Logic:** [React](https://react.dev/) (Interactive test components & state)
-*   **Styling:** [Tailwind CSS v4](https://tailwindcss.com/)
-*   **Database:** [MongoDB](https://www.mongodb.com/) (User credentials, stats history, streaks, achievements)
-*   **Audio Engine:** HTML5 Web Audio API (OscillatorNode & GainNode synthesizer)
+## 🗺️ Project Roadmap
+Future features planned for TypeMaster:
+- [ ] 👥 **Multiplayer Typing Battles:** Real-time online typing duels using WebSockets.
+- [ ] 🎵 **Sound Themes:** Custom switch profiles (Cherry MX Blue, Cherry MX Brown, Bubble Pops, and Retro Typewriter).
+- [ ] 📂 **Custom Text Uploads:** Upload your own text/code files (.txt, .md) to practice custom files.
+- [ ] 📈 **Advanced Analytics:** Dynamic progress charts over weeks/months showing typing speed trends by character.
 
 ---
 
-## 🧞 Command Reference
+## 🤝 Contributing
+Contributions are what make the open source community such an amazing place to learn, inspire, and create.
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-| Command | Action |
-| :--- | :--- |
-| `npm install` | Installs dependencies |
-| `npm run dev` | Starts local dev server at `localhost:4321` |
-| `npm run build` | Builds the production standalone server to `./dist/` |
-| `npm run preview` | Previews the build output locally |
-| `npm run dev -- --host` | Exposes the dev server to your local network |
+---
+
+## 📄 License
+Distributed under the MIT License. See `LICENSE` for more information.
 
 ---
 Enjoy typing and leveling up your speed! If you find this project useful, feel free to give it a star on [GitHub](https://github.com/Ajit-pawara/typemaster).
