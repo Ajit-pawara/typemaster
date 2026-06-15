@@ -334,6 +334,12 @@ export default function TypeRacerGame({ user }: TypeRacerProps) {
     getAudioContext();
 
     const inputVal = e.target.value;
+    
+    // Anti-cheat: prevent pasting, macros, or autocomplete injections
+    if (inputVal.length - typedText.length > 1) {
+      return;
+    }
+
     const currentLen = inputVal.length;
 
     // Restrict input to match text index
@@ -698,6 +704,12 @@ export default function TypeRacerGame({ user }: TypeRacerProps) {
                 placeholder="Click inside the box and type the words above..."
                 className="w-full p-4 font-mono text-sm bg-canvas-soft border border-hairline rounded focus:outline-none focus:border-brand-cyan focus:ring-1 focus:ring-brand-cyan/20 resize-none overflow-hidden text-ink placeholder-mute"
                 style={{ caretColor: 'transparent' }}
+                onPaste={(e) => e.preventDefault()}
+                onDrop={(e) => e.preventDefault()}
+                autoComplete="off"
+                autoCapitalize="off"
+                autoCorrect="off"
+                spellCheck="false"
               />
             </div>
 

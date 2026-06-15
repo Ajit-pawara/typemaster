@@ -357,6 +357,11 @@ export const TypingTest: React.FC<TypingTestProps> = ({
     
     const inputVal = e.target.value;
     
+    // Anti-cheat: block pasting, macros, and drag-and-drop text injection
+    if (inputVal.length - typedText.length > 1) {
+      return;
+    }
+    
     // Start on first character typed
     if (!isActive && inputVal.length > 0) {
       startTest();
@@ -680,6 +685,8 @@ export const TypingTest: React.FC<TypingTestProps> = ({
               autoCapitalize="off"
               autoCorrect="off"
               spellCheck="false"
+              onPaste={(e) => e.preventDefault()}
+              onDrop={(e) => e.preventDefault()}
             />
             <div className="w-full whitespace-pre-wrap break-words">
               {renderText()}
