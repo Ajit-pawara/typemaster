@@ -44,13 +44,28 @@ const TEXT_BANKS: Record<string, string[]> = {
 };
 
 // Web Audio API Synthesizer for high-performance sound effects
-const playKeySound = (type: 'correct' | 'wrong' | 'space' | 'enter', volume: number = 0.08) => {
-  if (typeof window === 'undefined') return;
-  try {
+let sharedAudioCtx: AudioContext | null = null;
+
+const getAudioContext = (): AudioContext | null => {
+  if (typeof window === 'undefined') return null;
+  if (!sharedAudioCtx) {
     const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-    if (!AudioContextClass) return;
+    if (AudioContextClass) {
+      sharedAudioCtx = new AudioContextClass();
+    }
+  }
+  // Resume if suspended (browser autoplay policy security measure)
+  if (sharedAudioCtx && sharedAudioCtx.state === 'suspended') {
+    sharedAudioCtx.resume().catch(err => console.error('Failed to resume AudioContext:', err));
+  }
+  return sharedAudioCtx;
+};
+
+const playKeySound = (type: 'correct' | 'wrong' | 'space' | 'enter', volume: number = 0.08) => {
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
     
-    const ctx = new AudioContextClass();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     
