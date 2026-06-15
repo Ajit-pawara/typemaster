@@ -39,8 +39,10 @@ const isActive = (path: string) => {
       </a>
       <a 
         href="/racer" 
-        class={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-          isActive('/racer') ? 'text-ink bg-canvas-soft-2 font-semibold' : 'text-body hover:text-ink'
+        class={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all border ${
+          isActive('/racer') 
+            ? 'text-brand-cyan bg-brand-cyan-soft border-brand-cyan/30 shadow-sm' 
+            : 'text-brand-cyan bg-brand-cyan-soft/10 border-brand-cyan/10 hover:bg-brand-cyan-soft/30 hover:border-brand-cyan/30'
         }`}
       >
         🏎️ TypeRacer

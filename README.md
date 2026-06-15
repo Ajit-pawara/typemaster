@@ -12,12 +12,13 @@
 
 </div>
 
-TypeMaster is a sleek, modern, and highly interactive typing speed application designed to help developers and typists improve their speed (WPM) and spelling accuracy. It features satisfying mechanical keyboard sound effects, detailed visual telemetry, achievements, and multiple custom training modules.
+TypeMaster is a sleek, modern, and highly interactive typing speed application designed to help developers and typists improve their speed (WPM) and spelling accuracy. It features satisfying mechanical keyboard sound effects, detailed visual telemetry, achievements, multiple custom training modules, and **TypeRacer**—a real-time car racing speed duel against bots or online opponents!
 
 ---
 
 ## 🌟 Key Features
 
+*   🏎️ **TypeRacer Speed Arena:** Race your car down a 5-lane visual racetrack by typing. Compete solo against intelligent bots (with **Easy**, **Normal**, and **Hard** speeds) or connect to the Arena for a simulated live 5-player race!
 *   🔊 **Real-time Mechanical Audio Synthesizer:** Satisfying keypress sound effects (mechanical click, space, enter, and warning chimes) built using the low-latency Web Audio API (reusing a single AudioContext to prevent lag).
 *   ⏱️ **Flexible Session Durations:** Practice with custom timers ranging from a quick **30-second** sprint to a **30-minute** endurance session.
 *   🔄 **Infinite Typing Flow:** Regular practice sessions will automatically and seamlessly append new text paragraphs as you type, allowing for continuous practice without early cutoffs.
